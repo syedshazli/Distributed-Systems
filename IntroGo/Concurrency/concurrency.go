@@ -1,7 +1,8 @@
-package concurrency
+package main
 import(
 	"fmt"
 	"sync"
+	"time"
 )
 
 
@@ -35,6 +36,30 @@ func main() {
 
 
 	// using a waitgroup, halt the main thread for a set amount of time using 3 different goroutines
+	var wg sync.WaitGroup
+	wg.Add(3) // 3 routines need to decrement the counter/semaphore
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		fmt.Println("Sleeping 1")
+		wg.Done()
+
+	}()
+
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		fmt.Println("Sleeping 2")
+		wg.Done()
+
+	}()
+
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		fmt.Println("Sleeping 3")
+		wg.Done()
+
+	}()
+
+	wg.Wait() // reaches here and waits for wg to be decremented to 0
 
 	return
 }
