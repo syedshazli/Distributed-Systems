@@ -74,7 +74,6 @@ func cmdQuery(client *rpc.Client, args []string) {
 		fmt.Fprintln(os.Stderr, "usage: client query <job-id>")
 		os.Exit(1)
 	}
-	// TODO: implement
 
 	// need to call queryJob
 	var currID types.JobID
@@ -103,4 +102,15 @@ func cmdQuery(client *rpc.Client, args []string) {
 // cmdList prints all jobs known to the coordinator.
 func cmdList(client *rpc.Client) {
 	// TODO: implement
+	var tryMe struct{}
+	var typesList[] types.JobSummary
+	err:= client.Call("Coordinator.ListJobs", tryMe, &typesList)
+	if err != nil{
+		fmt.Println(err)
+	}
+
+
+	for i := range typesList{
+		fmt.Printf("%-10s %-10s %s\n",typesList[i].ID, typesList[i].Type, typesList[i].State)
+	}
 }
