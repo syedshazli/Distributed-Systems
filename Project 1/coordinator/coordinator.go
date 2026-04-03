@@ -4,17 +4,23 @@ package coordinator
 // Add what you need here.
 import (
 	"cs4513/project1/types"
+	"sync"
 )
 
 // jobRecord is the coordinator's private copy of a job and its status.
 type jobRecord struct {
-	// TODO: add fields
+	jobID types.JobID
+	spec types.JobSpec
 }
 
 // Coordinator is the RPC server.
 // Keep shared state here and protect it with a mutex.
 type Coordinator struct {
-	// TODO: add fields
+	mu sync.Mutex // protect shared state w/mutex
+	Job types.Job
+	Result types.JobResult
+	Status types.JobStatus
+	Spec types.JobSpec
 }
 
 // New returns an initialized Coordinator.
