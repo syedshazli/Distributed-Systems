@@ -16,11 +16,13 @@ type jobRecord struct {
 // Coordinator is the RPC server.
 // Keep shared state here and protect it with a mutex.
 type Coordinator struct {
-	mu sync.Mutex // protect shared state w/mutex
-	Job types.Job
-	Result types.JobResult
-	Status types.JobStatus
-	Spec types.JobSpec
+	mu sync . Mutex
+	jobs map [ types . JobID ]* jobRecord // all jobs , keyed by ID
+	queue [] types . JobID // pending job IDs in FIFO order
+	workers map [ types . WorkerID ] time . Time // registered workers
+	nextJobID int64
+	nextWorkerID int64
+
 }
 
 // New returns an initialized Coordinator.
