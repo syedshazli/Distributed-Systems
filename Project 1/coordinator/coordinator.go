@@ -4,6 +4,9 @@ package coordinator
 // Add what you need here.
 import (
 	"cs4513/project1/types"
+	"fmt"
+	"net"
+	"net/rpc"
 	"sync"
 	"time"
 )
@@ -40,8 +43,26 @@ func New() *Coordinator {
 
 // Start creates a Coordinator, registers it, and starts listening on addr.
 func Start(addr string) error {
-	// TODO: implement
-	return nil
+	myCoord := New() // create the coordinator
+
+	srv := rpc.NewServer()
+	srv.Register(myCoord) // register the coordinator
+
+	ln, err := net.Listen("tcp", addr )
+
+	if err != nil{
+		return fmt.Errorf("Error listening on address %w: %w", addr, err)
+	}
+
+	for {
+		conn, err := ln.Accept()
+		// handle err ...
+		if err != nil{
+			return fmt.Errorf("Error connecting to server: %w", err)
+		}
+		go srv.ServeConn(conn)
+	}
+
 }
 
 // SubmitJob adds a new job and returns its ID.
