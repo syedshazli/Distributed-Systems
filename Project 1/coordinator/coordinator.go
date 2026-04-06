@@ -5,6 +5,7 @@ package coordinator
 import (
 	"cs4513/project1/types"
 	"sync"
+	"time"
 )
 
 // jobRecord is the coordinator's private copy of a job and its status.
@@ -19,16 +20,22 @@ type Coordinator struct {
 	mu sync . Mutex
 	jobs map [ types . JobID ]* jobRecord // all jobs , keyed by ID
 	queue [] types . JobID // pending job IDs in FIFO order
-	workers map [ types . WorkerID ] time . Time // registered workers
+	workers map [ types . WorkerID ] time.Time // registered workers
 	nextJobID int64
 	nextWorkerID int64
 
 }
 
 // New returns an initialized Coordinator.
+// we initialize an empty map of jobs and their records, workers and their IDs, and a queue of job IDs to ex
 func New() *Coordinator {
-	// TODO: implement
-	return &Coordinator{}
+	return & Coordinator {
+			jobs : make ( map [ types.JobID ]*jobRecord ) ,
+			workers : make ( map [ types.WorkerID ]time.Time ) ,
+			queue : [] types.JobID {} ,
+}
+
+	
 }
 
 // Start creates a Coordinator, registers it, and starts listening on addr.
