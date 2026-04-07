@@ -14,9 +14,9 @@ import (
 
 // jobRecord is the coordinator's private copy of a job and its status.
 type jobRecord struct {
-	jobID types.JobID
-	spec  types.JobSpec
-	state types.JobState
+	jobID  types.JobID
+	spec   types.JobSpec
+	status types.JobStatus
 }
 
 // Coordinator is the RPC server.
@@ -27,7 +27,7 @@ type Coordinator struct {
 	queue        []types.JobID                // pending job IDs in FIFO order
 	workers      map[types.WorkerID]time.Time // registered workers
 	nextJobID    int
-	nextWorkerID int64
+	nextWorkerID int
 }
 
 // New returns an initialized Coordinator.
@@ -67,14 +67,15 @@ func Start(addr string) error {
 
 // SubmitJob adds a new job and returns its ID.
 func (c *Coordinator) SubmitJob(spec types.JobSpec, reply *types.JobID) error {
-	// TODO: implement
+	// we lock the region to add an new job so that there are not any jobs with the same ID
+	// NOTE: We may be able to just retrieve the current ID and increment it and leave the critical region
 	c.mu.Lock()
 
 	// new job ID is the nextJobID
 	ID := types.JobID("job-" + strconv.Itoa(c.nextJobID))
 
 	// create a new jobRecord with the new ID and given spec
-	jobRec := jobRecord{ID, spec, types.StatePending}
+	jobRec := jobRecord{ID, spec, types.JobStatus{ID, types.StatePending, "", nil, ""}}
 
 	// increment the nextJobID
 	c.nextJobID++
@@ -93,19 +94,47 @@ func (c *Coordinator) SubmitJob(spec types.JobSpec, reply *types.JobID) error {
 
 // QueryJob returns the current status of a job.
 func (c *Coordinator) QueryJob(id types.JobID, reply *types.JobStatus) error {
-	// TODO: implement
+	c.mu.Lock()
+
+	record, ok := c.jobs[id]
+	if !ok {
+		c.mu.Unlock()
+		return fmt.Errorf("job not found: %s", id)
+	}
+
+	status := record.status
+	c.mu.Unlock()
+
+	*reply = status
 	return nil
 }
 
 // ListJobs returns a summary of every known job.
 func (c *Coordinator) ListJobs(_ struct{}, reply *[]types.JobSummary) error {
-	// TODO: implement
+	// must place a lock here since the number of elements can change without a lock
+	c.mu.Lock()
+	numJobs := len(c.jobs)
+	arr := make([]types.JobSummary, numJobs)
+	idx:= 0
+	for key := range c.jobs{
+		arr[idx] = types.JobSummary{ID: key, Type: c.jobs[key].spec.Type, State: c.jobs[key].status.State}
+		idx++
+	}
+	fmt.Println("Num elements = ", len(arr))
+	c.mu.Unlock()
+	*reply = arr
 	return nil
 }
 
 // Register assigns a WorkerID to a new worker.
 func (c *Coordinator) Register(_ types.WorkerInfo, reply *types.WorkerID) error {
-	// TODO: implement
+	c.mu.Lock()
+
+	ID := types.WorkerID("worker-" + strconv.Itoa(c.nextWorkerID))
+	c.nextWorkerID++
+	c.workers[ID] = time.Time{}
+	*reply = ID
+	c.mu.Unlock()
 	return nil
 }
 
