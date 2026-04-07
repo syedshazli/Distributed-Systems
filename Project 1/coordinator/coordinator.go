@@ -70,6 +70,8 @@ func (c *Coordinator) SubmitJob(spec types.JobSpec, reply *types.JobID) error {
 	// we lock the region to add an new job so that there are not any jobs with the same ID
 	// NOTE: We may be able to just retrieve the current ID and increment it and leave the critical region
 	c.mu.Lock()
+	defer c.mu.Unlock()
+
 
 	// new job ID is the nextJobID
 	ID := types.JobID("job-" + strconv.Itoa(c.nextJobID))
@@ -85,8 +87,6 @@ func (c *Coordinator) SubmitJob(spec types.JobSpec, reply *types.JobID) error {
 
 	c.queue = append(c.queue, ID)
 
-	c.mu.Unlock()
-
 	*reply = ID
 
 	return nil
@@ -95,6 +95,8 @@ func (c *Coordinator) SubmitJob(spec types.JobSpec, reply *types.JobID) error {
 // QueryJob returns the current status of a job.
 func (c *Coordinator) QueryJob(id types.JobID, reply *types.JobStatus) error {
 	c.mu.Lock()
+	defer c.mu.Unlock()
+
 
 	record, ok := c.jobs[id]
 	if !ok {
@@ -103,7 +105,6 @@ func (c *Coordinator) QueryJob(id types.JobID, reply *types.JobStatus) error {
 	}
 
 	status := record.status
-	c.mu.Unlock()
 
 	*reply = status
 	return nil
@@ -113,6 +114,8 @@ func (c *Coordinator) QueryJob(id types.JobID, reply *types.JobStatus) error {
 func (c *Coordinator) ListJobs(_ struct{}, reply *[]types.JobSummary) error {
 	// must place a lock here since the number of elements can change without a lock
 	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	numJobs := len(c.jobs)
 	arr := make([]types.JobSummary, numJobs)
 	idx:= 0
@@ -121,7 +124,6 @@ func (c *Coordinator) ListJobs(_ struct{}, reply *[]types.JobSummary) error {
 		idx++
 	}
 	fmt.Println("Num elements = ", len(arr))
-	c.mu.Unlock()
 	*reply = arr
 	return nil
 }
@@ -129,23 +131,57 @@ func (c *Coordinator) ListJobs(_ struct{}, reply *[]types.JobSummary) error {
 // Register assigns a WorkerID to a new worker.
 func (c *Coordinator) Register(_ types.WorkerInfo, reply *types.WorkerID) error {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	ID := types.WorkerID("worker-" + strconv.Itoa(c.nextWorkerID))
 	c.nextWorkerID++
 	c.workers[ID] = time.Time{}
 	*reply = ID
-	c.mu.Unlock()
 	return nil
 }
 
 // RequestJob hands out the next pending job.
 func (c *Coordinator) RequestJob(workerID types.WorkerID, reply *types.Job) error {
-	// TODO: implement
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if len(c.queue) == 0{
+		err := types.ErrNoWork
+		if types.IsNoWork(err){
+			return err
+		}
+
+	}
+	pendingJob := c.queue[0]
+	c.queue = c.queue[1:]
+	ID := c.jobs[pendingJob] // returns a jobRecord
+	ID.status.State = types.StateRunning 
+	ID.status.WorkerID = workerID
+
+	myJob := types.Job{ID.jobID, ID.spec}
+	*reply = myJob
 	return nil
 }
 
 // ReportResult stores the result of a finished job.
 func (c *Coordinator) ReportResult(result types.JobResult, _ *struct{}) error {
 	// TODO: implement
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	jobID := result.JobID
+	if c.jobs[jobID] == nil{
+		return fmt.Errorf("Could not find job")
+	}
+
+	if result.Err == ""{
+		jobRecord := c.jobs[jobID] // is the corresponding jobRecord
+		jobRecord.status.State = types.StateDone
+		jobRecord.status.Output = result.Output
+	}else{
+		c.jobs[jobID].status.State = types.StateFailed
+		c.jobs[jobID].status.Err = result.Err
+	}
+
+
 	return nil
 }
