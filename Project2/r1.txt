@@ -1,5 +1,14 @@
 Q1. (Section 3.1) The master stores the state of each Map and Reduce task. What are the three possible states a task can be in?
 
-A task can be idle, in-progress, or completed, according to section 3.2 of the paper.
+Answer: A task can be idle, in-progress, or completed, according to section 3.2 of the paper.
 
-Q2. (Section 3.2) After a Map task completes, its intermediate output is written to the ________ worker's local disk — not to GFS. It is partitioned into R files using a function such as hash(key) mod R. The locations of these files are then sent to the ________.
+Q2. (Section 3.2) After a Map task completes, its intermediate output is written to the ____map____ worker's local disk — not to GFS. It is partitioned into R files using a function such as hash(key) mod R. The locations of these files are then sent to the ___master, which the reducer eventually observes_____.
+
+
+Q3. (Section 3.3) When a Map worker fails, the master must re-run all of its completed Map tasks — even though they finished successfully. Explain in one sentence why completed Map tasks must be re-run after a worker failure, but completed Reduce tasks do not.
+
+Answer: Reduce tasks when completed are already written and saved to the GFS, however the map tasks are stored on the map worker's disk, so if the worker fails, then the output of the map task is inaccesible.
+
+Q4. (Section 3.4) The master tries to schedule each Map task on a machine that already holds a replica of that task's input file in GFS. What is the purpose of this scheduling strategy, and which specific resource does it conserve?
+
+Answer:
