@@ -11,4 +11,20 @@ Answer: Reduce tasks when completed are already written and saved to the GFS, ho
 
 Q4. (Section 3.4) The master tries to schedule each Map task on a machine that already holds a replica of that task's input file in GFS. What is the purpose of this scheduling strategy, and which specific resource does it conserve?
 
-Answer:
+Answer: The purpose of this scheduling strategy is to exploit locality of reference, which can end up speeding up execution time. This ends up conserving network-bandwidth, as the workers do not need to communicate over the network to access their file.
+
+Q5. (Section 3.5) The paper recommends setting M and R to be much larger than the number of worker machines. Give two reasons the paper provides for this recommendation.
+
+Answer: One reason for this is because if M and R were close to the number of machine workers, it is possible that some workers finish extremely quickly while others can be a bottleneck to fast execution. By splitting into small tasks, this possibility is removed, as workers who finish tasks early can pick up idle tasks. Another reason for this is because of proper fault-tolerance. If a worker fails, instead of one big job that needs to be picked up by another worker who already has a big job to do, the task is independently split up across other workers.
+
+Q6. (Section 3.6) To deal with stragglers, the master schedules backup executions of the last few remaining in-progress tasks. What is the condition under which the master marks such a task as complete?
+
+Answer: The master marks a task as complete when either the backup execution of the task finishes or the task itself has finished.
+
+Q7. (Section 4.3) The Combiner function runs on the same machine as the Map task before data is sent over the network. Using word count as an example, explain what the Combiner does and why it helps performance.
+
+Answer: The combiner function will essentially do an aggregation of results before being sent to the worker. For example, instead of sending <the, 1> 1000 times, a combiner can instead send <the, 1000>, and the reducer therefore has less work to process. This helps performance and avoids fallacies such as assuming the bandwidth is infinite, since we are effectivley reducing message size with this approach. Since the message is more compact and still provides proper information, the reducer has less work to aggregate, thereby improving performance.
+
+Q8. (Section 3.3) The paper states that the master can simply restart a failed worker's tasks because Map/Reduce functions have no side effects. Suppose a Map function in your lab writes intermediate results directly to a final output file (without using a temporary file and atomic rename). Describe a concrete failure scenario where this causes incorrect results.
+
+Answer: This can cause incorrect results if a worker is in a middle of processing results and suddenly crashes. The master now has access to an incomplete final output file. If the master decided to reschedule the work, there is no atomic rename, meaning another worker would retake the work and would start processing all over again, potentially appending to what was already done by the failed worker, thereby producing incorrect results.
