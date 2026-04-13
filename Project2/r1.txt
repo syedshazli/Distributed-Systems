@@ -1,0 +1,5 @@
+Q1. (Section 3.1) The master stores the state of each Map and Reduce task. What are the three possible states a task can be in?
+
+A task can be idle, in-progress, or completed, according to section 3.2 of the paper.
+
+Q2. (Section 3.2) After a Map task completes, its intermediate output is written to the ________ worker's local disk — not to GFS. It is partitioned into R files using a function such as hash(key) mod R. The locations of these files are then sent to the ________.
