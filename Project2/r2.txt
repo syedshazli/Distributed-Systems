@@ -1,0 +1,25 @@
+Q1. (Section 2.1) GFS relaxes one assumption that most previous file systems relied on. What is it, and what workload observation led to this design choice?
+
+
+
+Q2. (Section 2.3) GFS separates two responsibilities that traditional file systems combine. What does the master handle, and what do chunkservers handle? Why is this separation useful?
+
+Q3. (Section 2.5) GFS uses a chunk size of 64 MB, much larger than a typical file system block. Give two advantages of this large chunk size.
+
+Q4. (Section 2.6) The master keeps two categories of metadata: non-volatile (persisted to disk) and volatile (kept only in RAM, reconstructed at startup). Identify which of the following is volatile and which is non-volatile, and briefly explain why each is stored the way it is:
+
+File-to-chunk-handle mapping
+Chunk version number
+Which chunkservers hold a replica of a given chunk
+The identity of the current primary for a chunk
+Q5. (Section 2.6.3) The master uses an operation log and checkpoints for crash recovery. Explain what each one stores, and describe the recovery procedure when the master restarts.
+
+Q6. (Section 3.1) Describe the steps a GFS client takes to read a file, starting from having only a filename and byte offset. Your answer should include what the client sends to the master, what the master returns, and what the client does next.
+
+Q7. (Section 3.1 and 3.3) GFS uses leases to designate one replica as the primary for a chunk. What problem do leases solve? What happens to the primary's authority when its lease expires?
+
+Q8. (Sections 3.1 and 3.2) In a GFS record append, the client sends data to chunkservers before telling the primary to append. Describe why GFS decouples data flow from control flow in this way, and what benefit it provides.
+
+Q9. (Section 2.7 and Table 1) GFS provides a relaxed consistency model rather than strong consistency. After a successful record append, what does GFS guarantee about the written region? What does it not guarantee about the regions between successful appends?
+
+Q10. (Section 4.4 / your reasoning) After a chunkserver crashes and restarts, it reports its chunks and version numbers to the master. How does the master use version numbers to identify stale replicas, and what does it do with them?
