@@ -12,10 +12,14 @@ One advantage of the large chunk size is the minimal client-master communication
 
 Q4. (Section 2.6) The master keeps two categories of metadata: non-volatile (persisted to disk) and volatile (kept only in RAM, reconstructed at startup). Identify which of the following is volatile and which is non-volatile, and briefly explain why each is stored the way it is:
 
-File-to-chunk-handle mapping
+File-to-chunk-handle mapping: This data is non-volatile. The file to chunk mapping is stored in the operation log. This is because the files to chunk mappings in log form serve as a timeline for concurrent operations. If this data was volatile, we risk having invalid copies of the locations on the filesystem in general.
+
 Chunk version number: The chunk version number is volatile. The reason for this is because if the master keeps state of locations, it would constantly have coherency conflicts with the chunkserver copy. Instead, only the chunkserver keeps the location that the master pings for
-Which chunkservers hold a replica of a given chunk
+
+Which chunkservers hold a replica of a given chunk: This data is also volatile. 
+
 The identity of the current primary for a chunk
+
 Q5. (Section 2.6.3) The master uses an operation log and checkpoints for crash recovery. Explain what each one stores, and describe the recovery procedure when the master restarts.
 
 Q6. (Section 3.1) Describe the steps a GFS client takes to read a file, starting from having only a filename and byte offset. Your answer should include what the client sends to the master, what the master returns, and what the client does next.
