@@ -13,7 +13,7 @@ One advantage of the large chunk size is the minimal client-master communication
 Q4. (Section 2.6) The master keeps two categories of metadata: non-volatile (persisted to disk) and volatile (kept only in RAM, reconstructed at startup). Identify which of the following is volatile and which is non-volatile, and briefly explain why each is stored the way it is:
 
 File-to-chunk-handle mapping
-Chunk version number
+Chunk version number: The chunk version number is volatile. The reason for this is because if the master keeps state of locations, it would constantly have coherency conflicts with the chunkserver copy. Instead, only the chunkserver keeps the location that the master pings for
 Which chunkservers hold a replica of a given chunk
 The identity of the current primary for a chunk
 Q5. (Section 2.6.3) The master uses an operation log and checkpoints for crash recovery. Explain what each one stores, and describe the recovery procedure when the master restarts.
