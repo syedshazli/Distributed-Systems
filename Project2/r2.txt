@@ -1,10 +1,14 @@
 Q1. (Section 2.1) GFS relaxes one assumption that most previous file systems relied on. What is it, and what workload observation led to this design choice?
 
-
+The assumption for concurrency is relaxed due to
 
 Q2. (Section 2.3) GFS separates two responsibilities that traditional file systems combine. What does the master handle, and what do chunkservers handle? Why is this separation useful?
 
+The master maintains all filesystem metadata (current locations of chunks, mappings of files to chunks, etc). Chunkservers handle the actual storage of chunks on disk. This separation can be useful as the chunkserver can handle the process of replicating a chunk on multiple chunk servers, to ensure fault tolerance, while the master can know where things should be, while the chunkserver knows what's actually inside.
+
 Q3. (Section 2.5) GFS uses a chunk size of 64 MB, much larger than a typical file system block. Give two advantages of this large chunk size.
+
+One advantage of the large chunk size is the minimal client-master communication, since read and writes for the same chunk requires only one request to the master on chunk location. A second advantage is the reduced size of storage on the master
 
 Q4. (Section 2.6) The master keeps two categories of metadata: non-volatile (persisted to disk) and volatile (kept only in RAM, reconstructed at startup). Identify which of the following is volatile and which is non-volatile, and briefly explain why each is stored the way it is:
 
