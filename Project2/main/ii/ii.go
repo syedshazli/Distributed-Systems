@@ -1,6 +1,7 @@
 package mapreduce
 
 import (
+	"encoding/json"
 	"hash/fnv"
 	"os"
 )
@@ -30,9 +31,11 @@ func doMap(
 	//   For each KeyValue returned by mapF, compute which reduce task it belongs to:
 	//     r := int(ihash(kv.Key)) % nReduce
 	//   The output filename for reduce task r is: reduceName(jobName, mapTaskNumber, r)
-	
+	for index, value := range keyVal {
+		r := int(ihash(keyVal[index].Key)) % nReduce // get the reduce task number for this pair
+		fileName := reduceName(jobName, mapTaskNumber, r)
+	}
 
-	
 	// Step 3: Write each partition using JSON encoding.
 	//   Use json.NewEncoder(file) and enc.Encode(&kv) for each KeyValue.
 	//   Example:
@@ -42,6 +45,12 @@ func doMap(
 	//       checkError(err)
 	//     }
 	//
+	enc := json.NewEncoder(inFile) //TODO: It's not infile, it's each new file of intermediate str
+	for _, kv := range keyVal {
+		err := enc.Encode(&kv)
+		checkError(err)
+	}
+
 	// Step 4: Write atomically using a temp file + os.Rename.
 	//   See the Note in the project spec (Part A) for the required pattern:
 	//   create each output file with os.CreateTemp, write to it, close it,
