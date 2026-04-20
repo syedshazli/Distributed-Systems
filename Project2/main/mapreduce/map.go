@@ -31,9 +31,12 @@ func doMap(
 	//   For each KeyValue returned by mapF, compute which reduce task it belongs to:
 	//     r := int(ihash(kv.Key)) % nReduce
 	//   The output filename for reduce task r is: reduceName(jobName, mapTaskNumber, r)
-	for index, value := range keyVal {
-		r := int(ihash(keyVal[index].Key)) % nReduce // get the reduce task number for this pair
-		fileName := reduceName(jobName, mapTaskNumber, r)
+
+	partitions := make([][]KeyValue, nReduce)
+	for _, kv := range keyVal {
+		reduceTaskNum := int(ihash(kv.Key)) % nReduce // get the reduce task number for this pair
+		partitions[reduceTaskNum] = append(partitions[reduceTaskNum], kv) //reduceTaskNumber is now saved in this partition array
+		// fileName := reduceName(jobName, mapTaskNumber, r)
 	}
 
 	// Step 3: Write each partition using JSON encoding.
@@ -45,17 +48,32 @@ func doMap(
 	//       checkError(err)
 	//     }
 	//
-	enc := json.NewEncoder(inFile) //TODO: It's not infile, it's each new file of intermediate str
-	for _, kv := range keyVal {
-		err := enc.Encode(&kv)
+
+	for r := 0; r < nReduce; r++{
+		fileName := reduceName(jobName, mapTaskNumber, r)
+		tmpFile, err := os.CreateTemp("", "prefix")
 		checkError(err)
+		enc := json.NewEncoder(tmpFile)
+		for _, kv := range keyVal{
+			err = enc.Encode(&kv)
+			checkError(err)
+		}
+		err = tmpFile.Close()
+		checkError(err)
+		err = os.Rename(tmpFile.Name(), fileName )
+
 	}
+	
 
 	// Step 4: Write atomically using a temp file + os.Rename.
 	//   See the Note in the project spec (Part A) for the required pattern:
 	//   create each output file with os.CreateTemp, write to it, close it,
 	//   then call os.Rename(tmp.Name(), reduceName(...)) to atomically publish it.
 	//   Use checkError to handle errors.
+
+
+
+
 
 }
 
