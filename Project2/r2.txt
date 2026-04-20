@@ -14,11 +14,11 @@ Q4. (Section 2.6) The master keeps two categories of metadata: non-volatile (per
 
 File-to-chunk-handle mapping: This data is non-volatile. The file to chunk mapping is stored in the operation log. This is because the files to chunk mappings in log form serve as a timeline for concurrent operations. If this data was volatile, we risk having invalid copies of the locations on the filesystem in general.
 
-Chunk version number: The chunk version number is volatile. The reason for this is because if the master keeps state of locations, it would constantly have coherency conflicts with the chunkserver copy. Instead, only the chunkserver keeps the location that the master pings for
+Chunk version number: The chunk version number is non-volatile. The reason for this is because if the master crashes, it needs to know which copy is most recently updated
 
-Which chunkservers hold a replica of a given chunk: This data is also volatile. 
+Which chunkservers hold a replica of a given chunk: This data is volatile. This is because we can just query the data from the chunkserver
 
-The identity of the current primary for a chunk
+The identity of the current primary for a chunk: This data is volatile because the identity of the primary can changhe often, so storing it to ram often can actually be very slow.
 
 Q5. (Section 2.6.3) The master uses an operation log and checkpoints for crash recovery. Explain what each one stores, and describe the recovery procedure when the master restarts.
 
