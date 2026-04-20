@@ -1,6 +1,6 @@
 Q1. (Section 2.1) GFS relaxes one assumption that most previous file systems relied on. What is it, and what workload observation led to this design choice?
 
-The assumption for concurrency is relaxed due to
+The assumption for consistency is relaxed. The workload observation that led to this was a burden on applications due to previously complicated file systems.
 
 Q2. (Section 2.3) GFS separates two responsibilities that traditional file systems combine. What does the master handle, and what do chunkservers handle? Why is this separation useful?
 
@@ -22,12 +22,20 @@ The identity of the current primary for a chunk: This data is volatile because t
 
 Q5. (Section 2.6.3) The master uses an operation log and checkpoints for crash recovery. Explain what each one stores, and describe the recovery procedure when the master restarts.
 
+The operation log is a record of every metadata changing operation, which is replicated on multiple remote machines. When the master restarts, it simply replays the operation log, since it contains the record of metadata changes.
+
 Q6. (Section 3.1) Describe the steps a GFS client takes to read a file, starting from having only a filename and byte offset. Your answer should include what the client sends to the master, what the master returns, and what the client does next.
 
+First, the client send the filename and the chunk index, which is calculated using the byte offset. The master replies with a chunk handle, and where the replicas are stored. The client then sends the chunk handle and byte range to the nearest replicam and the chunkserver returns the data to the client.
+
 Q7. (Section 3.1 and 3.3) GFS uses leases to designate one replica as the primary for a chunk. What problem do leases solve? What happens to the primary's authority when its lease expires?
+
+Leases ensure a consistent mutation order, which solves the problem of differing mutation ordering. A replica that has the lease is known as the primary. The primary is no longer allowed to mutate the file once its lease expires.
 
 Q8. (Sections 3.1 and 3.2) In a GFS record append, the client sends data to chunkservers before telling the primary to append. Describe why GFS decouples data flow from control flow in this way, and what benefit it provides.
 
 Q9. (Section 2.7 and Table 1) GFS provides a relaxed consistency model rather than strong consistency. After a successful record append, what does GFS guarantee about the written region? What does it not guarantee about the regions between successful appends?
+
+GFS gurantees the appended output will be preserved. It does not gurantee the regions between succesful appends can be preserved, as in component failiures can overwrite data.
 
 Q10. (Section 4.4 / your reasoning) After a chunkserver crashes and restarts, it reports its chunks and version numbers to the master. How does the master use version numbers to identify stale replicas, and what does it do with them?
