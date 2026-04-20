@@ -34,8 +34,12 @@ Leases ensure a consistent mutation order, which solves the problem of differing
 
 Q8. (Sections 3.1 and 3.2) In a GFS record append, the client sends data to chunkservers before telling the primary to append. Describe why GFS decouples data flow from control flow in this way, and what benefit it provides.
 
+GFS decouples data flow from control flow in order to use the network efficiently. The benefit of using pipelined methods whcih are forwarded to the closest server instead of using network topology methods is that the network bandwidth is able to be maximized while not adding any bottlenecks.
+
 Q9. (Section 2.7 and Table 1) GFS provides a relaxed consistency model rather than strong consistency. After a successful record append, what does GFS guarantee about the written region? What does it not guarantee about the regions between successful appends?
 
 GFS gurantees the appended output will be preserved. It does not gurantee the regions between succesful appends can be preserved, as in component failiures can overwrite data.
 
 Q10. (Section 4.4 / your reasoning) After a chunkserver crashes and restarts, it reports its chunks and version numbers to the master. How does the master use version numbers to identify stale replicas, and what does it do with them?
+
+The master's version number will be one higher than the chunkserver since the master increments its local copy before granting a lease. Since the version number is persistnently stored to disk, any replica that has a version number lower than the master's version number is stale, and the master does not use them, and the garbage collector claims the memory, as the client will not see this data in any future replies
