@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"sort"
-	"strings"
 )
 
 // doReduce does the job of a reduce worker: it reads the intermediate
@@ -27,54 +26,63 @@ func doReduce(
 	//   until it returns an error (io.EOF means you've read all entries):
 	//     dec := json.NewDecoder(f)
 	//     for {
-	//       var kv KeyValue
-	//       if err := dec.Decode(&kv); err != nil { break }
-	//       kvMap[kv.Key] = append(kvMap[kv.Key], kv.Value)
+	//       var kv KeyValue // Assuming KeyValue is {Key string, Value string}
+	//       if err := dec.Decode(&kv); err != nil { break } // io.EOF comes here
+
 	//     }
 	//
-	for fileNum := 0; fileNum < nMap; fileNum++{
+
+	// Use a map to aggregate all values for each key across all intermediate files.
+	intermediateData := make(map[string][]string)
+
+	for fileNum := 0; fileNum < nMap; fileNum++ {
 		fileName := reduceName(jobName, fileNum, reduceTaskNumber)
 
-		file, err0 := os.Open(fileName) // access file from filename
+		file, err0 := os.Open(fileName)
 		checkError(err0)
 
 		decoder := json.NewDecoder(file)
-		kvMap := make(map[string][]string)
 
-		for{
+		for {
 			var kv KeyValue
-			if err := decoder.Decode(&kv); err != nil { break }
-			kvMap[kv.Key] = append(kvMap[kv.Key], kv.Value)
-
-			// Step 2: Call reduceF for each unique key.
-			//   Collect all keys, sort them (sort.Strings), then for each key call
-			//   reduceF(key, kvMap[key]) to get the output value.
-	
-			sort.Strings(kvMap[kv.Key])
-			reduceF(kv.Key, kvMap[kv.Key])
-
-			// Step 3: Write output atomically using a temp file + os.Rename.
-			//   The final output filename is: mergeName(jobName, reduceTaskNumber)
-			//   See the Note in the project spec (Part A) for the required pattern:
-			//   create the output with os.CreateTemp, write JSON-encoded KeyValue pairs,
-			//   close it, then call os.Rename(tmp.Name(), mergeName(...)).
-			//   JSON encoding:
-			//     enc := json.NewEncoder(tmpFile)
-			//     enc.Encode(KeyValue{key, reduceF(key, kvMap[key])})
-			//
-			// Use checkError to handle errors.
-
-			tmpFile, err := os.CreateTemp("", "reduce")
-			checkError(err)
-			enc := json.NewEncoder(tmpFile)
-			enc.Encode(KeyValue{kv.Key, reduceF(kv.Key, kvMap[kv.Key])})
+			if err := decoder.Decode(&kv); err != nil {
+				break // End of file or error
+			}
+			intermediateData[kv.Key] = append(intermediateData[kv.Key], kv.Value)
 		}
-
 		file.Close()
-
 	}
 
-	
-	
+	// Step 2: Call reduceF for each unique key.
+	//   Collect all keys, sort them (sort.Strings), then for each key call
+	//   reduceF(key, kvMap[key]) to get the output value.
+	var keys []string
+	for key := range intermediateData {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys) // Sort the unique keys
 
+	// Step 3: Write output atomically using a temp file + os.Rename.
+	//   The final output filename is: mergeName(jobName, reduceTaskNumber)
+	//   Use os.CreateTemp to create a temporary output file.
+	//   Write JSON-encoded KeyValue pairs to this temporary file.
+	//   Close the temporary file, then call os.Rename(tmp.Name(), mergeName(...)).
+	finalOutputFileName := mergeName(jobName, reduceTaskNumber)
+	tmpFile, err := os.CreateTemp(".", "mr-reduce-output-") // Use a descriptive prefix
+	checkError(err)
+
+	enc := json.NewEncoder(tmpFile)
+	for _, key := range keys {
+		sort.Strings(intermediateData[key]) // Sort values for the current key
+		reducedValue := reduceF(key, intermediateData[key])
+		err := enc.Encode(KeyValue{key, reducedValue})
+		checkError(err)
+	}
+
+	err = tmpFile.Close()
+	checkError(err)
+
+	os.Remove(finalOutputFileName)
+	err = os.Rename(tmpFile.Name(), finalOutputFileName)
+	checkError(err)
 }
