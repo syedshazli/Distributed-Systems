@@ -5,6 +5,7 @@ import (
 	"mr/mapreduce"
 	"os"
 	"strings"
+	"strconv"
 )
 
 // The mapping function is called once for each piece of the input.
@@ -28,6 +29,10 @@ func mapF(document string, value string) (res []mapreduce.KeyValue) {
 // should be a single output value for that key.
 func reduceF(key string, values []string) string {
 	// TODO:
+	occurences := len(values)
+	valToString := strconv.Itoa(occurences)
+
+	return valToString
 }
 
 // Can be run in 3 ways:
