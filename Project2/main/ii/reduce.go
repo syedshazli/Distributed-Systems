@@ -1,88 +1,66 @@
-package mapreduce
+package main
 
 import (
-	"encoding/json"
+	"fmt"
+	"mr/mapreduce"
 	"os"
 	"sort"
+	"strings"
 )
 
-// doReduce does the job of a reduce worker: it reads the intermediate
-// key/value pairs (produced by the map phase) for this task, sorts the
-// intermediate key/value pairs by key, calls the user-defined reduce function
-// (reduceF) for each key, and writes the output to disk.
-func doReduce(
-	jobName string, // the name of the whole MapReduce job
-	reduceTaskNumber int, // which reduce task this is
-	nMap int, // the number of map tasks that were run ("M" in the paper)
-	reduceF func(key string, values []string) string,
-) {
+// mapF is called once per input file. filename is the name of the file being
+// processed and contents is the file's full text. For the inverted index
+// application, mapF should emit one key/value pair per word occurrence,
+// using the word as the key and the filename as the value.
+func mapF(filename string, contents string) (res []mapreduce.KeyValue) {
 	// TODO:
-	// You will need to write this function.
-	//
-	// Step 1: Read all intermediate files for this reduce task.
-	//   There are nMap intermediate files, one per map task.
-	//   For map task m, the file is: reduceName(jobName, m, reduceTaskNumber)
-	//   Open each file, create a json.NewDecoder, and call .Decode() in a loop
-	//   until it returns an error (io.EOF means you've read all entries):
-	//     dec := json.NewDecoder(f)
-	//     for {
-	//       var kv KeyValue // Assuming KeyValue is {Key string, Value string}
-	//       if err := dec.Decode(&kv); err != nil { break } // io.EOF comes here
+	whiteSpacedTokens := strings.Fields(contents) // a list of all tokens split by whitespace
+	var result []mapreduce.KeyValue
+	for _, token := range whiteSpacedTokens {
+		result = append(result, mapreduce.KeyValue{Key: token, Value: filename})
+	}
+	return result
 
-	//     }
-	//
+}
 
-	// Use a map to aggregate all values for each key across all intermediate files.
-	intermediateData := make(map[string][]string)
+// reduceF is called once per unique word across all input files. key is the
+// word and values is a slice of filenames in which that word appears (may
+// contain duplicates if the word appears multiple times in the same file).
+// reduceF should return a sorted, deduplicated, comma-separated list of
+// document names.
+func reduceF(key string, values []string) string {
+	// TODO:
+	sort.Strings(values) // sort the files
 
-	for fileNum := 0; fileNum < nMap; fileNum++ {
-		fileName := reduceName(jobName, fileNum, reduceTaskNumber)
+	// now, remove duplicates from the values
+	var filenames []string
 
-		file, err0 := os.Open(fileName)
-		checkError(err0)
+	filenames = append(filenames, values[0]) // first filename is always unique
 
-		decoder := json.NewDecoder(file)
-
-		for {
-			var kv KeyValue
-			if err := decoder.Decode(&kv); err != nil {
-				break // End of file or error
-			}
-			intermediateData[kv.Key] = append(intermediateData[kv.Key], kv.Value)
+	for i := 1; i < len(values); i++ {
+		if values[i-1] != values[i] {
+			filenames = append(filenames, values[i])
 		}
-		file.Close()
 	}
 
-	// Step 2: Call reduceF for each unique key.
-	//   Collect all keys, sort them (sort.Strings), then for each key call
-	//   reduceF(key, kvMap[key]) to get the output value.
-	var keys []string
-	for key := range intermediateData {
-		keys = append(keys, key)
+	return strings.Join(filenames, ",") // comma separated list
+}
+
+// Can be run in 2 ways:
+// 1) Sequential (e.g., go run ii/ii.go master sequential x1.txt .. xN.txt)
+// 2) Master   (e.g., go run ii/ii.go master localhost:7777 x1.txt .. xN.txt)
+func main() {
+	if len(os.Args) < 4 {
+		fmt.Printf("%s: see usage comments in file\n", os.Args[0])
+	} else if os.Args[1] == "master" {
+		var mr *mapreduce.Master
+		if os.Args[2] == "sequential" {
+			mr = mapreduce.Sequential("iiseq", os.Args[3:], 3, mapF, reduceF)
+		} else {
+			mr = mapreduce.Distributed("iidis", os.Args[3:], 3, os.Args[2])
+		}
+		mr.Wait()
+	} else {
+		mapreduce.RunWorker(os.Args[2], os.Args[3], mapF, reduceF, 100)
 	}
-	sort.Strings(keys) // Sort the unique keys
-
-	// Step 3: Write output atomically using a temp file + os.Rename.
-	//   The final output filename is: mergeName(jobName, reduceTaskNumber)
-	//   Use os.CreateTemp to create a temporary output file.
-	//   Write JSON-encoded KeyValue pairs to this temporary file.
-	//   Close the temporary file, then call os.Rename(tmp.Name(), mergeName(...)).
-	finalOutputFileName := mergeName(jobName, reduceTaskNumber)
-	tmpFile, err := os.CreateTemp(".", "mr-reduce-output-") // Use a descriptive prefix
-	checkError(err)
-
-	enc := json.NewEncoder(tmpFile)
-	for _, key := range keys {
-		sort.Strings(intermediateData[key]) // Sort values for the current key
-		reducedValue := reduceF(key, intermediateData[key])
-		err := enc.Encode(KeyValue{key, reducedValue})
-		checkError(err)
-	}
-
-	err = tmpFile.Close()
-	checkError(err)
-
-	os.Remove(finalOutputFileName)
-	err = os.Rename(tmpFile.Name(), finalOutputFileName)
-	checkError(err)
 }
