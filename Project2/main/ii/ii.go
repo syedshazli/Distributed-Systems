@@ -5,6 +5,7 @@ import (
 	"mr/mapreduce"
 	"os"
 	"strings"
+	"slices"
 )
 
 // mapF is called once per input file. filename is the name of the file being
@@ -13,9 +14,13 @@ import (
 // using the word as the key and the filename as the value.
 func mapF(filename string, contents string) (res []mapreduce.KeyValue) {
 	// TODO:
-	whiteSpacedTokens := strings.Fields(contents) // a list of all tokens split by whitespace,ki
+	whiteSpacedTokens := strings.Fields(contents) // a list of all tokens split by whitespace
+	var result []mapreduce.KeyValue
+	for _, token := range whiteSpacedTokens {
+		result = append(result, mapreduce.KeyValue{Key: token, Value: filename})
+	}
+	return result
 
-	return
 }
 
 // reduceF is called once per unique word across all input files. key is the
@@ -25,7 +30,11 @@ func mapF(filename string, contents string) (res []mapreduce.KeyValue) {
 // document names.
 func reduceF(key string, values []string) string {
 	// TODO:
-	return ""
+	var filenames[] string
+	slices.Sort(values)         
+    filenames = slices.Compact(values) // removes duplicates
+
+	return strings.Join(filenames, ", ") // comma separated list
 }
 
 // Can be run in 2 ways:
