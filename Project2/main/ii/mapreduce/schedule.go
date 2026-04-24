@@ -23,8 +23,8 @@ func (mr *Master) schedule(phase jobPhase) {
 	// finishes (or fails) so other tasks can reuse it. Note that
 	// mr.registerChannel is unbuffered, so return the address asynchronously
 	// to avoid a deadlock on the last task in the phase.
-
 	
+	mr.registerChannel
 
 	// TODO (Part F): when all but one task have completed, launch backup tasks
 	// for any that are still running, to avoid being held up by a slow worker.
