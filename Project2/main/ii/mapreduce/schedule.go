@@ -1,5 +1,7 @@
 package mapreduce
 
+import "sync"
+
 // schedule starts and waits for all tasks in the given phase (Map or Reduce).
 func (mr *Master) schedule(phase jobPhase) {
 	var ntasks int
@@ -24,9 +26,36 @@ func (mr *Master) schedule(phase jobPhase) {
 	// mr.registerChannel is unbuffered, so return the address asynchronously
 	// to avoid a deadlock on the last task in the phase.
 
-	worker := mr.registerChannel
-	var taskArgs DoTaskArgs
-	taskArgs.File := 
+	var wg sync.WaitGroup // initialize the waitgroup
+
+	for i := 0; i < ntasks; i++ {
+
+		wg.Add(1)
+
+		go func(taskNum int) {
+			defer wg.Done()
+			// find avail worker
+			worker := <-mr.registerChannel
+			// setup args for task
+			var taskArgs DoTaskArgs
+			taskArgs.JobName = mr.jobName
+			taskArgs.NumOtherPhase = nios
+			taskArgs.Phase = phase
+			taskArgs.TaskNumber = taskNum
+			if phase == mapPhase {
+				taskArgs.File = mr.files[taskNum]
+			}
+
+			call(worker, "Worker.DoTask", taskArgs, nil) // dispatch task via rpc call
+
+			// return worker to channel
+			go func() { mr.registerChannel <- worker }()
+
+		}(i)
+
+	}
+
+	wg.Wait()
 
 	// TODO (Part F): when all but one task have completed, launch backup tasks
 	// for any that are still running, to avoid being held up by a slow worker.
