@@ -32,26 +32,7 @@ func (mr *Master) schedule(phase jobPhase) {
 
 		wg.Add(1)
 
-		go func(taskNum int) {
-			defer wg.Done()
-			// find avail worker
-			worker := <-mr.registerChannel
-			// setup args for task
-			var taskArgs DoTaskArgs
-			taskArgs.JobName = mr.jobName
-			taskArgs.NumOtherPhase = nios
-			taskArgs.Phase = phase
-			taskArgs.TaskNumber = taskNum
-			if phase == mapPhase {
-				taskArgs.File = mr.files[taskNum]
-			}
-
-			call(worker, "Worker.DoTask", taskArgs, nil) // dispatch task via rpc call
-
-			// return worker to channel
-			go func() { mr.registerChannel <- worker }()
-
-		}(i)
+		runTask(wg, mr, nios, phase, i)
 
 	}
 
@@ -65,4 +46,33 @@ func (mr *Master) schedule(phase jobPhase) {
 	// original and a backup copy of a task finish successfully.
 
 	debug("Schedule: %v phase done\n", phase)
+}
+
+func runTask(wg sync.WaitGroup, mr *Master, nios int, phase jobPhase, i int) {
+	go func(taskNum int) {
+		defer wg.Done()
+		for {
+			// find avail worker
+			worker := <-mr.registerChannel
+			// setup args for task
+			var taskArgs DoTaskArgs
+			taskArgs.JobName = mr.jobName
+			taskArgs.NumOtherPhase = nios
+			taskArgs.Phase = phase
+			taskArgs.TaskNumber = taskNum
+			if phase == mapPhase {
+				taskArgs.File = mr.files[taskNum]
+			}
+
+			result := call(worker, "Worker.DoTask", taskArgs, nil) // dispatch task via rpc call
+
+			// return worker to channel
+			go func() { mr.registerChannel <- worker }()
+
+			if result {
+				break
+			}
+		}
+
+	}(i)
 }
