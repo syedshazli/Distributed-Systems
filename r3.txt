@@ -8,12 +8,17 @@ A term is just a contigous sequence of time for a leader to get work done. Terms
 
 Q3. (Section 5.2) When does a Raft server start a leader election, and what steps does it take? How does Raft guarantee at most one leader per term?
 
+A Raft server starts a leader election when it receives no AppendEntries RPC response from a leader, and times out. It then starts an election by making itself a candidate, incrementing its own term number, and sends a RPC requests to other followers by asking for votes. Raft gurantees at most one leader per term because the candidate with the most votes is the only leader that serves a term. If there is a tie, then no leader is elected for that term.
 
 Q4. (Sections 5.2 and 5.6) Raft uses randomized election timeouts to avoid split votes. Explain why randomization helps. The paper also states a timing requirement in Section 5.6:
 
 broadcastTime « electionTimeout « MTBF
 
 Explain in plain language what each inequality means and why it is necessary.
+
+Randomization helps because if there was no randomized election timeout, it is possible that there is an infinite sequence of split votes, with no work actually being done since no leader is elected. Randomization ensures that one server times out early and broadcasts its request to be elected before other potential candidates get the chance, making those potential candidates followers instead. 
+
+## ANSWER FOR 5.6 HERE
 
 Q5. (Section 5.3) Describe the fields in the AppendEntries RPC and explain how the prevLogIndex and prevLogTerm fields are used to enforce the Log Matching Property. What does the follower do if the check fails?
 
