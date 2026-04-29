@@ -1,8 +1,13 @@
 Q1. (Section 2) Raft is designed around the replicated state machine model. Briefly explain what this model is: what are the components, and what property must hold for the replication to be correct?
 
+This model essentially relies on a log that contains the sequence of operations that should be executed by every server. The algorithms job is to make sure this sequence of operations is the same for everyone. In order for the replication to be correct, every log must contain the same requests in the same order. According to the paper, the main propert is in relation to safety, which states "if any server has applied a particular log entry to its state machine, then no other server may apply a different command for the same log index"
+
 Q2. (Section 5.1) Raft uses terms to number successive leadership periods. What is a term, and how does it function as a logical clock? What does a server do when it receives an RPC with a term number higher than its own?
 
+A term is just a contigous sequence of time for a leader to get work done. Terms function as logical clocks since a higher term number indicates an event happened later in time or after another event, thereby showing logical sequences of events. When a server receives an RPC with a term number higher than its own, it recognizes that server as the leader and accepts the RPC, making sure its new term number is now the same as the leaders term number.
+
 Q3. (Section 5.2) When does a Raft server start a leader election, and what steps does it take? How does Raft guarantee at most one leader per term?
+
 
 Q4. (Sections 5.2 and 5.6) Raft uses randomized election timeouts to avoid split votes. Explain why randomization helps. The paper also states a timing requirement in Section 5.6:
 
