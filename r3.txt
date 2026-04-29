@@ -18,7 +18,7 @@ Explain in plain language what each inequality means and why it is necessary.
 
 Randomization helps because if there was no randomized election timeout, it is possible that there is an infinite sequence of split votes, with no work actually being done since no leader is elected. Randomization ensures that one server times out early and broadcasts its request to be elected before other potential candidates get the chance, making those potential candidates followers instead. 
 
-## ANSWER FOR 5.6 HERE
+The election timeout cannot be greater than the average time to failure because if it was, then most servers won't have the chance to run since they will fail before even timing out and having the chance to be a candidate. The election timeout must also be greater than the broadcast time because we want to make sure that if a message is being sent by a real leader, then the followers can actually receive it, otherwise followers will think there is no response and try to start an election when a response is actually in transit.
 
 Q5. (Section 5.3) Describe the fields in the AppendEntries RPC and explain how the prevLogIndex and prevLogTerm fields are used to enforce the Log Matching Property. What does the follower do if the check fails?
 
