@@ -1,0 +1,24 @@
+Q1. (Section 2) Raft is designed around the replicated state machine model. Briefly explain what this model is: what are the components, and what property must hold for the replication to be correct?
+
+Q2. (Section 5.1) Raft uses terms to number successive leadership periods. What is a term, and how does it function as a logical clock? What does a server do when it receives an RPC with a term number higher than its own?
+
+Q3. (Section 5.2) When does a Raft server start a leader election, and what steps does it take? How does Raft guarantee at most one leader per term?
+
+Q4. (Sections 5.2 and 5.6) Raft uses randomized election timeouts to avoid split votes. Explain why randomization helps. The paper also states a timing requirement in Section 5.6:
+
+broadcastTime « electionTimeout « MTBF
+
+Explain in plain language what each inequality means and why it is necessary.
+
+Q5. (Section 5.3) Describe the fields in the AppendEntries RPC and explain how the prevLogIndex and prevLogTerm fields are used to enforce the Log Matching Property. What does the follower do if the check fails?
+
+Q6. (Section 5.3) What does it mean for a log entry to be committed? Once an entry is committed, what guarantee does Raft provide about it? Who learns that an entry is committed, and how?
+
+Q7. (Section 5.4.1) Raft restricts which candidates can win an election using the "at least as up-to-date" rule. State this rule precisely. Then explain why the simpler rule "elect the server with the longest log" would be unsafe; use a concrete example with log term numbers.
+
+Q8. (Figure 2) Raft requires servers to persist three pieces of state to non-volatile storage: log[], currentTerm, and votedFor. For each one, explain why it must survive a crash and what safety violation could occur if it were not persisted.
+
+Q9. (Section 7) Describe how Raft uses snapshots for log compaction. Your answer should include: (a) what information a snapshot contains, (b) when a server discards log entries, and (c) what happens when a follower is so far behind that the leader has already discarded the log entries the follower needs.
+
+Q10. (Section 8) Why can the leader not safely serve a Get(key) read by immediately returning the value from its local state machine, without going through the log? Then describe the lease-based optimization: how does it allow read-only requests to bypass the log while still guaranteeing linearizability?
+
