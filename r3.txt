@@ -22,7 +22,19 @@ The election timeout cannot be greater than the average time to failure because 
 
 Q5. (Section 5.3) Describe the fields in the AppendEntries RPC and explain how the prevLogIndex and prevLogTerm fields are used to enforce the Log Matching Property. What does the follower do if the check fails?
 
+The AppendEntries RPC has a term which is the current term of the leader. A leaderID is also used to identify the leader. prevLogIndex is attached to inform followers of the index of the log entry before new log entries are appended by the leader. The previous log term is attached so that followers can reject or accepted, as a entry is rejected if the log term is different than the current followers log term, or accepted otherwise. An array of log entries to store is attached for followers to storeas well as the leaders commit index.
+
+If the check fails, then a recovery mechanism is launched to ensure things are up to date. The leader decrements its store of the next index of the log for each follower, and tries the append again.
+
 Q6. (Section 5.3) What does it mean for a log entry to be committed? Once an entry is committed, what guarantee does Raft provide about it? Who learns that an entry is committed, and how?
+
+A long entry is commited once the leader has replicated its log entry on the majority of servers. Once an entry is commited, Raft gurantees the following:
+
+### If two entries in different logs have the same index and term, then they store the same command.
+### If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.
+### If an entry is commited by a leader in a term, then that entry is present in all other logs for the leaders in higher terms.
+
+Other servers learn an entry is commited since the leader attaches the highest log index it knows to be commited in its AppendEntries rpc to other servers
 
 Q7. (Section 5.4.1) Raft restricts which candidates can win an election using the "at least as up-to-date" rule. State this rule precisely. Then explain why the simpler rule "elect the server with the longest log" would be unsafe; use a concrete example with log term numbers.
 
