@@ -38,6 +38,10 @@ Other servers learn an entry is commited since the leader attaches the highest l
 
 Q7. (Section 5.4.1) Raft restricts which candidates can win an election using the "at least as up-to-date" rule. State this rule precisely. Then explain why the simpler rule "elect the server with the longest log" would be unsafe; use a concrete example with log term numbers.
 
+The at least as up-to-date rule resides on the premise that a candidate must contact a majority of the cluster before being elected. If the candidates log is at least up to date to one of the servers in the majority, then it has all the commited entries. Being at-least-up-to-date is dependent on the index and term of the latest entries in their logs. Whichever log with the higher term is more up to date, and if both logs end with the same term, whichever log has a higher index is more up to date. 
+
+If we just elect the server with the longest log, a server could be a leader for a term, add uncommited entries, crashing at term 2 with a long log. By the time this server starts back up, other servers take leadership and it is term 5 now, but has a shorter log. So just because the crashed leader has a longer log doesn't mean it's accurate. The longer log would then actually overwrite the correct sequence that happened from the higher term.
+
 Q8. (Figure 2) Raft requires servers to persist three pieces of state to non-volatile storage: log[], currentTerm, and votedFor. For each one, explain why it must survive a crash and what safety violation could occur if it were not persisted.
 
 Q9. (Section 7) Describe how Raft uses snapshots for log compaction. Your answer should include: (a) what information a snapshot contains, (b) when a server discards log entries, and (c) what happens when a follower is so far behind that the leader has already discarded the log entries the follower needs.
