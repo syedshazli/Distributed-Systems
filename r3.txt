@@ -52,5 +52,7 @@ We need to know the current term because the term and log index are used to esse
 
 Q9. (Section 7) Describe how Raft uses snapshots for log compaction. Your answer should include: (a) what information a snapshot contains, (b) when a server discards log entries, and (c) what happens when a follower is so far behind that the leader has already discarded the log entries the follower needs.
 
+The snapshot contains the entire system state at one point in time. Once the snapshot is persisted, the log entries are discarded. If a follower lags behind, the leader will send a snapshot to the follower, and the follower likely discards its whole log. The leader attaches chunks of a snapshot to a follower at a time, including the data such as the latest term and latest index. The follower resets its state machine and follows from the first snapshot, since snapshots are sent in order. 
+
 Q10. (Section 8) Why can the leader not safely serve a Get(key) read by immediately returning the value from its local state machine, without going through the log? Then describe the lease-based optimization: how does it allow read-only requests to bypass the log while still guaranteeing linearizability?
 
