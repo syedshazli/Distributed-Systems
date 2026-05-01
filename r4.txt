@@ -1,0 +1,12 @@
+Nick-Q1:  Describe one specific distributed system, technical challenge, or design decision the speaker discussed. What was the problem, and how was it addressed?
+
+Nick-Q2: What aspect of the speaker's experience did you find most interesting or surprising, and why?
+
+Nick-Q3: How does the speaker's work or experience connect to a concept we have covered in this course (e.g., MapReduce, GFS, Raft, replication, consistency, fault tolerance, naming, RPCs)? Be specific about the connection.
+
+Grant-Q1, 
+Grant-Q2, 
+Grant-Q3, 
+Ankit-Q1, 
+Ankit-Q2, 
+Ankit-Q3.
