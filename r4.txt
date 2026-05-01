@@ -21,6 +21,20 @@ Grant-Q1,
 Grant-Q2, 
 Grant-Q3, 
 
+Other notes:
+Qualtrix, the survey company
+Model inference gateway to send requests to proper LLM providers
+Model capacity changes all the time!!
+
+Cant let everyone use all the models, teams can hog resources!
+Instead, map the team id using the model to a struct of stuff such as which model is used, but kind of hard to find easily which models teams have access to
+
+live updated configs saves things in memory, like the configs, where the configs are go maps
+
+multithreading becomes a problem as well, must manage it properly
+
+
+
 Ankit-Q1, 
 Ankit-Q2, 
 Ankit-Q3.
@@ -35,6 +49,8 @@ Load-balancer can also do health/heartbeak checks to see which alive which aren'
 If the load-balancer dies? Add multiple load balancers as a result (can't we also do heartbeat to the load-balancer as well?)
 
 User traffic will be much longer if they're further away from the server, even if we add another server closer, the load balancer is still far away, and lots of traffic (went all the way to other country to come back) --> Solution, add a load balancer to the closer location
+
+Questions: What happens if you get datacenter requests that you can't fulfill locally to the user? E.G a User in Asia needs NV-Linked GPUs for their performance but the asia datacenters only uses Infiniband or something, do you take more latency by rerouting to a location that has that compute or do you reject the request?
 
 Anycast routing
 
