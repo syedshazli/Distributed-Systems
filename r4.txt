@@ -1,8 +1,21 @@
 Nick-Q1:  Describe one specific distributed system, technical challenge, or design decision the speaker discussed. What was the problem, and how was it addressed?
 
+One technical challenge was fixing servers when they crash. The problem 
+
 Nick-Q2: What aspect of the speaker's experience did you find most interesting or surprising, and why?
 
 Nick-Q3: How does the speaker's work or experience connect to a concept we have covered in this course (e.g., MapReduce, GFS, Raft, replication, consistency, fault tolerance, naming, RPCs)? Be specific about the connection.
+
+Other notes:
+Tracing: Knowing how long each component takes. Uses a span to know how long a region of code takes to execute. Helps with knowing the pinpoint of crashes as well.
+
+Option 1: Turn off discord or do feature flagging, which means start using a certain strategy, seen in  the raft paper.
+
+RPC is performed to start the session to find user info
+
+Data is traced via random sampling since we cant trace everything
+
+Sample a certain percentage based on the sessions (1 session keep 100%, 100 sessions keep 10%, 100000 sessions keep 0.1%)
 
 Grant-Q1, 
 Grant-Q2, 
