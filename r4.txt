@@ -20,6 +20,24 @@ Sample a certain percentage based on the sessions (1 session keep 100%, 100 sess
 Grant-Q1, 
 Grant-Q2, 
 Grant-Q3, 
+
 Ankit-Q1, 
 Ankit-Q2, 
 Ankit-Q3.
+
+Other notes: 
+Fast, low-latency, scalable (CAP requirements in class)
+Data consistency
+DOmain name registered ro 2 diff IP addresses for multi-server arch to load balance
+Introduce an actual load balancer with a distinct ip address, DNS is located at that address and users send to that load balancer
+Load-balancer can also do health/heartbeak checks to see which alive which aren't (related to class) 
+
+If the load-balancer dies? Add multiple load balancers as a result (can't we also do heartbeat to the load-balancer as well?)
+
+User traffic will be much longer if they're further away from the server, even if we add another server closer, the load balancer is still far away, and lots of traffic (went all the way to other country to come back) --> Solution, add a load balancer to the closer location
+
+Anycast routing
+
+horizontal scaling is better
+
+
