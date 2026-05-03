@@ -10,27 +10,18 @@ Nick-Q3: How does the speaker's work or experience connect to a concept we have 
 
 Nick specifically mentioned that an RPC is performed to start a session to find user information. We learned about RPCs in class as RPCs provide a great way to run functions that are run on an external codebase.
 
-Grant-Q1, 
-Grant-Q2, 
-Grant-Q3, 
+Grant-Q1: Grant specifically mentioned that he had to deal with different model capacity changes, which happen quite often, as well as teams being able to hog resources, such as calls to LLM provider APIs. To solve this, Grant created a mechanism which made it easy to find which models teams have access to as well as knowing when specific team members are hogging resources. 
 
-Other notes:
-Qualtrix, the survey company
-Model inference gateway to send requests to proper LLM providers
-Model capacity changes all the time!!
+Grant-Q2: It was interesting to me that Grant gave us insight into how model pricing and tracking works for a large variety of customers. I like the systems behind ML, and so I liked that Grant gave us some insight into how some real world ML applications such as LLMs are tracked in his work.
 
-Cant let everyone use all the models, teams can hog resources!
-Instead, map the team id using the model to a struct of stuff such as which model is used, but kind of hard to find easily which models teams have access to
-
-live updated configs saves things in memory, like the configs, where the configs are go maps
-
-multithreading becomes a problem as well, must manage it properly
+Grant-Q3: Grant specifically mentioned that he uses the Go programming language in his work, something that we learned due to Go's ease in handling concurrency, which was vital to Grant since many people want to access models at the same time. Grant specifically used Go maps and Gos concurrency primitives to help him update live configs, which saves state in memory.
 
 
+Ankit-Q1: Ankit showed the challenges of routing Google's network traffic through a bike application example. Specifically, he mentioned the challenge of a user being physically located further away from their servers would likely lead to high latency results. As a result, Ankit added load balancers and servers all across the world, to be able to serve all kinds of users in different locations, ensruing they get low latency and consistent results.
 
-Ankit-Q1, 
-Ankit-Q2, 
-Ankit-Q3.
+Ankit-Q2: I found it interesting how we got a real world view from first principles of how to design an application that scales to users across the world, something not often seen. I specifically was curious since Google Cloud Pro allows use cases for deep learning compute, so I was interested to see how Google handles large scale requests to compute that may not be available all across the world.
+
+Ankit-Q3: Ankit specifically mentioned the importance of CAP, something we learned in class, which stands for consistency, availability, and partition tolerance. He specifically mentioned their product required fast, low-latency, and scalable results, as well as data consistency. This meant Ankits team really wanted all 3 parts of CAP, and he specifically provided mechanisms to achieve availability and partition tolerance, such as adding load balancers.
 
 Other notes: 
 Fast, low-latency, scalable (CAP requirements in class)
