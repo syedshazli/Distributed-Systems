@@ -1,21 +1,14 @@
 Nick-Q1:  Describe one specific distributed system, technical challenge, or design decision the speaker discussed. What was the problem, and how was it addressed?
 
-One technical challenge was fixing servers when they crash. The problem 
+One problem Nick discussed was the fact that Discord can crash sometimes, and when it does, the dev team needs detailed information on what happened so that they can fix the issue. The team used an intricate tracing feature which works much better than just normal runtime metrics. This tracing feature allows the team to know how long it takes for each component in a section of their codebase to run. This helps pinpoint the issue of the crashes, allowing the dev team to fix bugs quick and fast.
 
 Nick-Q2: What aspect of the speaker's experience did you find most interesting or surprising, and why?
 
+I found most interesting how Nick was able to show us Discord's architecture in a very simple and abstracted way. This is because I gained insight into how an app I used everyday can power a fast and quick experience for users. I also got insight into how tracing works, as Nick specifically mentioned practical issues such as not being able to trace all events in the system, and having to randomly sample a percentage based on the number of sessions.
+
 Nick-Q3: How does the speaker's work or experience connect to a concept we have covered in this course (e.g., MapReduce, GFS, Raft, replication, consistency, fault tolerance, naming, RPCs)? Be specific about the connection.
 
-Other notes:
-Tracing: Knowing how long each component takes. Uses a span to know how long a region of code takes to execute. Helps with knowing the pinpoint of crashes as well.
-
-Option 1: Turn off discord or do feature flagging, which means start using a certain strategy, seen in  the raft paper.
-
-RPC is performed to start the session to find user info
-
-Data is traced via random sampling since we cant trace everything
-
-Sample a certain percentage based on the sessions (1 session keep 100%, 100 sessions keep 10%, 100000 sessions keep 0.1%)
+Nick specifically mentioned that an RPC is performed to start a session to find user information. We learned about RPCs in class as RPCs provide a great way to run functions that are run on an external codebase.
 
 Grant-Q1, 
 Grant-Q2, 
